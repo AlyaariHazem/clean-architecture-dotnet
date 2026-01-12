@@ -1,3 +1,6 @@
+using CleanArchitecture.API.Contracts;
+using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CleanArchitecture.API.Controllers
@@ -10,6 +13,12 @@ namespace CleanArchitecture.API.Controllers
         [
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         ];
+        private readonly ICarServices _carServices;
+
+        public WeatherForecastController(ICarServices carServices)
+        {
+            _carServices = carServices;
+        }
 
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
@@ -22,5 +31,26 @@ namespace CleanArchitecture.API.Controllers
             })
             .ToArray();
         }
+
+
+        [HttpPost("/testing")]
+        public async Task<ActionResult<CarsContract>> CreateNew([FromBody] CarsOperationsContract model)
+        {
+            var oDataModel = new Cars()
+            {
+                CarName = model.CarName,
+            };
+            var oResult = await _carServices.Create(oDataModel);
+
+            var oDataResult = new CarsContract()
+            {
+                CarName = oDataModel.CarName,
+            };
+
+            return Ok(oDataResult);
+
+        }
     }
 }
+
+
