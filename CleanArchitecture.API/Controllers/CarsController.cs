@@ -1,5 +1,7 @@
 using CleanArchitecture.API.Contracts;
+using CleanArchitecture.Core.Common;
 using CleanArchitecture.Core.Entities;
+using CleanArchitecture.Core.Exceptions;
 using CleanArchitecture.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,20 +26,12 @@ namespace CleanArchitecture.API.Controllers
         /// </summary>
         /// <returns>List of all cars</returns>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<CarResponseDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<CarResponseDto>>> GetAllCars()
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<CarResponseDto>>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<CarResponseDto>>>> GetAllCars()
         {
-            try
-            {
-                var cars = await _carServices.GetAllAsync();
-                var response = cars.Select(car => MapToDto(car));
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving all cars");
-                return StatusCode(500, "An error occurred while retrieving cars");
-            }
+            var cars = await _carServices.GetAllAsync();
+            var response = cars.Select(car => MapToDto(car));
+            return Ok(ApiResponse<IEnumerable<CarResponseDto>>.SuccessResponse(response, "Cars retrieved successfully"));
         }
 
         /// <summary>
@@ -46,30 +40,23 @@ namespace CleanArchitecture.API.Controllers
         /// <param name="id">Car ID</param>
         /// <returns>Car details</returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(CarResponseDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<CarResponseDto>> GetCarById(int id)
+        [ProducesResponseType(typeof(ApiResponse<CarResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse<CarResponseDto>>> GetCarById(int id)
         {
-            try
+            if (id <= 0)
             {
-                var car = await _carServices.GetByIdAsync(id);
-                if (car == null)
-                {
-                    return NotFound($"Car with ID {id} not found");
-                }
+                throw new BadRequestException("Car ID must be greater than zero");
+            }
 
-                return Ok(MapToDto(car));
-            }
-            catch (ArgumentException ex)
+            var car = await _carServices.GetByIdAsync(id);
+            if (car == null)
             {
-                _logger.LogWarning(ex, "Invalid ID provided: {Id}", id);
-                return BadRequest(ex.Message);
+                throw new NotFoundException("Car", id);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving car with ID {Id}", id);
-                return StatusCode(500, "An error occurred while retrieving the car");
-            }
+
+            return Ok(ApiResponse<CarResponseDto>.SuccessResponse(MapToDto(car), "Car retrieved successfully"));
         }
 
         /// <summary>
@@ -78,41 +65,30 @@ namespace CleanArchitecture.API.Controllers
         /// <param name="request">Car creation request</param>
         /// <returns>Created car</returns>
         [HttpPost]
-        [ProducesResponseType(typeof(CarResponseDto), StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<CarResponseDto>> CreateCar([FromBody] CreateCarRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<CarResponseDto>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status422UnprocessableEntity)]
+        public async Task<ActionResult<ApiResponse<CarResponseDto>>> CreateCar([FromBody] CreateCarRequestDto request)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+            // ModelState validation is handled by ValidationFilterAttribute
+            // Additional business validation can be added here
 
-                var car = new Cars
-                {
-                    CarName = request.CarName,
-                    CarType = request.CarType,
-                    Manufacturer = request.Manufacturer,
-                    Year = request.Year,
-                    Price = request.Price
-                };
-
-                var createdCar = await _carServices.CreateAsync(car);
-                var response = MapToDto(createdCar);
-
-                return CreatedAtAction(nameof(GetCarById), new { id = createdCar.Id }, response);
-            }
-            catch (ArgumentNullException ex)
+            var car = new Cars
             {
-                _logger.LogWarning(ex, "Null car provided for creation");
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while creating car");
-                return StatusCode(500, "An error occurred while creating the car");
-            }
+                CarName = request.CarName,
+                CarType = request.CarType,
+                Manufacturer = request.Manufacturer,
+                Year = request.Year,
+                Price = request.Price
+            };
+
+            var createdCar = await _carServices.CreateAsync(car);
+            var response = MapToDto(createdCar);
+
+            return CreatedAtAction(
+                nameof(GetCarById),
+                new { id = createdCar.Id },
+                ApiResponse<CarResponseDto>.SuccessResponse(response, "Car created successfully", 201)
+            );
         }
 
         /// <summary>
@@ -122,53 +98,33 @@ namespace CleanArchitecture.API.Controllers
         /// <param name="request">Car update request</param>
         /// <returns>Updated car</returns>
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(CarResponseDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<CarResponseDto>> UpdateCar(int id, [FromBody] UpdateCarRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<CarResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status422UnprocessableEntity)]
+        public async Task<ActionResult<ApiResponse<CarResponseDto>>> UpdateCar(int id, [FromBody] UpdateCarRequestDto request)
         {
-            try
+            if (id != request.Id)
             {
-                if (id != request.Id)
-                {
-                    return BadRequest("ID in URL does not match ID in request body");
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var car = new Cars
-                {
-                    Id = request.Id,
-                    CarName = request.CarName,
-                    CarType = request.CarType,
-                    Manufacturer = request.Manufacturer,
-                    Year = request.Year,
-                    Price = request.Price
-                };
-
-                var updatedCar = await _carServices.UpdateAsync(car);
-                var response = MapToDto(updatedCar);
-
-                return Ok(response);
+                throw new BadRequestException("ID in URL does not match ID in request body");
             }
-            catch (KeyNotFoundException ex)
+
+            // ModelState validation is handled by ValidationFilterAttribute
+
+            var car = new Cars
             {
-                _logger.LogWarning(ex, "Car with ID {Id} not found for update", id);
-                return NotFound(ex.Message);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Invalid argument provided for update: {Id}", id);
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating car with ID {Id}", id);
-                return StatusCode(500, "An error occurred while updating the car");
-            }
+                Id = request.Id,
+                CarName = request.CarName,
+                CarType = request.CarType,
+                Manufacturer = request.Manufacturer,
+                Year = request.Year,
+                Price = request.Price
+            };
+
+            var updatedCar = await _carServices.UpdateAsync(car);
+            var response = MapToDto(updatedCar);
+
+            return Ok(ApiResponse<CarResponseDto>.SuccessResponse(response, "Car updated successfully"));
         }
 
         /// <summary>
@@ -177,31 +133,23 @@ namespace CleanArchitecture.API.Controllers
         /// <param name="id">Car ID</param>
         /// <returns>No content if successful</returns>
         [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> DeleteCar(int id)
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse>> DeleteCar(int id)
         {
-            try
+            if (id <= 0)
             {
-                var deleted = await _carServices.DeleteAsync(id);
-                if (!deleted)
-                {
-                    return NotFound($"Car with ID {id} not found");
-                }
+                throw new BadRequestException("Car ID must be greater than zero");
+            }
 
-                return NoContent();
-            }
-            catch (ArgumentException ex)
+            var deleted = await _carServices.DeleteAsync(id);
+            if (!deleted)
             {
-                _logger.LogWarning(ex, "Invalid ID provided for deletion: {Id}", id);
-                return BadRequest(ex.Message);
+                throw new NotFoundException("Car", id);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while deleting car with ID {Id}", id);
-                return StatusCode(500, "An error occurred while deleting the car");
-            }
+
+            return Ok(ApiResponse.SuccessResponse("Car deleted successfully", 200));
         }
 
         private static CarResponseDto MapToDto(Cars car)

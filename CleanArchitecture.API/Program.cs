@@ -1,6 +1,9 @@
+using CleanArchitecture.API.Filters;
+using CleanArchitecture.API.Middleware;
 using CleanArchitecture.Infrastracture;
 using CleanArchitecture.Infrastracture.Persistence.Data;
 using CleanArchitecture.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 
@@ -8,7 +11,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // service registration (IserviceCollection)
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Add global validation filter
+    options.Filters.Add<ValidationFilterAttribute>();
+});
+
+// Configure API behavior for consistent error responses
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    // Disable default model state validation to use our custom filter
+    options.SuppressModelStateInvalidFilter = false;
+});
 
 // Configure CORS to allow all origins, methods, and headers
 builder.Services.AddCors(options =>
@@ -49,6 +63,9 @@ builder.AddInfrastructureRegistration();
 builder.AddServiceRegistrations();
 
 var app = builder.Build();
+
+// Configure global exception handling - must be first in pipeline
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // Configure Swagger - must be early in the pipeline
 if (app.Environment.IsDevelopment())
