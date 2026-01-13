@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Infrastracture.Interfaces;
+﻿using CleanArchitecture.Core.Interfaces;
 using CleanArchitecture.Infrastracture.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,37 +6,58 @@ namespace CleanArchitecture.Infrastracture.Persistence
 {
     public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     {
-        private ApplicationDbContext _context = null;
-        private DbSet<TEntity> _entity;
+        private readonly ApplicationDbContext _context;
+        private readonly DbSet<TEntity> _dbSet;
+
         public Repository(ApplicationDbContext context)
         {
-            _context = context;
-            _entity = _context.Set<TEntity>();
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _dbSet = _context.Set<TEntity>();
         }
+
         public async ValueTask<TEntity> AddAsync(TEntity entity)
         {
-            await _entity.AddAsync(entity);
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            await _dbSet.AddAsync(entity);
             return entity;
         }
 
-        public async ValueTask DeleteAsynce(string entityId)
+        public async ValueTask<TEntity?> GetByIdAsync(int id)
         {
-            var oDate = await _entity.FindAsync(entityId);
-            _entity.Remove(oDate);
-
+            return await _dbSet.FindAsync(id);
         }
 
-        public async ValueTask<TEntity> Get(string entityId) =>
-            await _entity.FindAsync(entityId);
+        public async ValueTask<IEnumerable<TEntity>> GetAllAsync()
+        {
+            return await _dbSet.ToListAsync();
+        }
 
+        public void Update(TEntity entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
 
-        public async ValueTask<IEnumerable<TEntity>> GetAll() =>
-            await _entity.ToListAsync();
+            _dbSet.Update(entity);
+        }
 
-        public void UpdateAsynce(TEntity entity) =>
-            _entity.Attach(entity);
+        public void Delete(TEntity entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
 
-        public int SaveChanges() =>
-            _context.SaveChanges();
+            _dbSet.Remove(entity);
+        }
+
+        public async ValueTask<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public int SaveChanges()
+        {
+            return _context.SaveChanges();
+        }
     }
 }

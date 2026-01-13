@@ -40,7 +40,7 @@ namespace CleanArchitecture.API.Controllers
             {
                 CarName = model.CarName,
             };
-            var oResult = await _carServices.Create(oDataModel);
+            var oResult = await _carServices.CreateAsync(oDataModel);
 
             var oDataResult = new CarsContract()
             {
