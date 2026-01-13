@@ -10,6 +10,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Configure CORS to allow all origins, methods, and headers
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Add Swagger/OpenAPI services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -23,11 +34,19 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
+// Register DbContext first
+// For development, you can use InMemory database or configure a connection string
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? "Server=(localdb)\\mssqllocaldb;Database=CleanArchitectureDb;Trusted_Connection=true;TrustServerCertificate=true";
+
+builder.Services.AddDbContext<ApplicationDbContext>(options => 
+    options.UseSqlServer(connectionString));
+
+// Register Infrastructure (Unit of Work)
 builder.AddInfrastructureRegistration();
+
+// Register Application Services
 builder.AddServiceRegistrations();
-
-
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(""));
 
 var app = builder.Build();
 
@@ -45,9 +64,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
-
 app.UseRouting();
+
+// Enable CORS - must be after UseRouting and before UseAuthorization
+app.UseCors();
+
+app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
