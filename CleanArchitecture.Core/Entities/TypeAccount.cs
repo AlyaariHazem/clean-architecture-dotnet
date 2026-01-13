@@ -7,7 +7,7 @@ namespace CleanArchitecture.Core.Entities;
 
 public class TypeAccount
 {
-    public int TypeAccountID { get; set; }
-    public string TypeAccountName { get; set;}
-    public virtual ICollection<Accounts> Accounts { get; set; }
+    public Guid TypeAccountID { get; set; }
+    public string TypeAccountName { get; set; } = string.Empty;
+    public virtual ICollection<Accounts> Accounts { get; set; } = new List<Accounts>();
 }

@@ -9,7 +9,7 @@ public class AccountStudentGuardian
 {
 
     public int AccountStudentGuardianID { get; set; }
-    public int AccountID { get; set; }
+    public Guid AccountID { get; set; }
     public Accounts Accounts { get; set; }
     public int GuardianID { get; set; }
     public Guardian Guardian { get; set; }

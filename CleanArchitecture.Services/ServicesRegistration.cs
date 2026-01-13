@@ -7,7 +7,8 @@ namespace CleanArchitecture.Services
     {
         public static void AddServiceRegistrations(this WebApplicationBuilder builder)
         {
-            builder.Services.AddTransient<ICarServices,CarServices>();
+            builder.Services.AddTransient<ICarServices, CarServices>();
+            builder.Services.AddTransient<IAccountsService, AccountsService>();
         }
     }
 }

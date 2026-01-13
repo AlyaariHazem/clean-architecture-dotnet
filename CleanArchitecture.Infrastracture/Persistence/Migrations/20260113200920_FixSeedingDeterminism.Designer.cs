@@ -4,6 +4,7 @@ using CleanArchitecture.Infrastracture.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CleanArchitecture.Infrastracture.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260113200920_FixSeedingDeterminism")]
+    partial class FixSeedingDeterminism
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1202,35 +1205,35 @@ namespace CleanArchitecture.Infrastracture.Persistence.Migrations
                         new
                         {
                             Id = "1",
-                            ConcurrencyStamp = "44f65d88-80ff-4436-bb32-34fa3f9d1d36",
+                            ConcurrencyStamp = "b4b786c9-8b74-446a-8045-c6f1cb38ddca",
                             Name = "ADMIN",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "2",
-                            ConcurrencyStamp = "470e8478-e533-4247-9fbf-626e30102dd7",
+                            ConcurrencyStamp = "7cfff771-c7e2-47d9-93be-637dd7ce196c",
                             Name = "MANAGER",
                             NormalizedName = "MANAGER"
                         },
                         new
                         {
                             Id = "3",
-                            ConcurrencyStamp = "69de9b69-ac2f-4349-9aff-cade12eee8b6",
+                            ConcurrencyStamp = "cfe268b3-dc5f-4834-86e5-5ee4490f8ac2",
                             Name = "STUDENT",
                             NormalizedName = "STUDENT"
                         },
                         new
                         {
                             Id = "4",
-                            ConcurrencyStamp = "c849cef0-80b2-4548-85b1-7cedd3b9b06e",
+                            ConcurrencyStamp = "9cc8e7e5-6c33-4a06-b583-6b88853caab6",
                             Name = "TEACHER",
                             NormalizedName = "TEACHER"
                         },
                         new
                         {
                             Id = "5",
-                            ConcurrencyStamp = "9e7729f4-374c-416a-8c86-d3eb20a4805a",
+                            ConcurrencyStamp = "27ea9fa6-7d68-4ec2-a328-181482d7be65",
                             Name = "GUARDIAN",
                             NormalizedName = "GUARDIAN"
                         });
@@ -1674,7 +1677,7 @@ namespace CleanArchitecture.Infrastracture.Persistence.Migrations
                     b.HasOne("CleanArchitecture.Core.Entities.Manager", "Manager")
                         .WithMany()
                         .HasForeignKey("ManagerID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("CleanArchitecture.Core.Entities.ApplicationUser", "ApplicationUser")

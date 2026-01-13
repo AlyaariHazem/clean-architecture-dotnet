@@ -4,6 +4,7 @@ using CleanArchitecture.Infrastracture.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CleanArchitecture.Infrastracture.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260113195158_CreatedSchoolTables")]
+    partial class CreatedSchoolTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -156,17 +159,17 @@ namespace CleanArchitecture.Infrastracture.Persistence.Migrations
                         {
                             Id = "007266f8-a4b4-4b9e-a8d2-3e0a6f9df5ec",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "33333333-3333-3333-3333-333333333333",
+                            ConcurrencyStamp = "132aa7f7-029e-4849-9bf4-6466e8024797",
                             Email = "ADMIN@GMAIL.COM",
                             EmailConfirmed = true,
                             Gender = "",
-                            HireDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            HireDate = new DateTime(2026, 1, 13, 22, 51, 53, 201, DateTimeKind.Local).AddTicks(244),
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "PASTE_THE_PRECOMPUTED_HASH_HERE",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFBuumX6gNyJA/V/lI87N83890A9It/ayBmGmR5ME7ZNzuejD1l41y5p0WQxZFK2XA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "22222222-2222-2222-2222-222222222222",
+                            SecurityStamp = "af39e27f-b06d-466d-bbe1-1290bc77f7eb",
                             TwoFactorEnabled = false,
                             UserName = "ADMIN",
                             UserType = "ADMIN"
@@ -1202,35 +1205,35 @@ namespace CleanArchitecture.Infrastracture.Persistence.Migrations
                         new
                         {
                             Id = "1",
-                            ConcurrencyStamp = "44f65d88-80ff-4436-bb32-34fa3f9d1d36",
+                            ConcurrencyStamp = "44c4ef24-c866-4f56-80e5-a9a73eb8b83f",
                             Name = "ADMIN",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "2",
-                            ConcurrencyStamp = "470e8478-e533-4247-9fbf-626e30102dd7",
+                            ConcurrencyStamp = "4a506ae3-bfd8-4a4a-b12e-7e3f34d20d14",
                             Name = "MANAGER",
                             NormalizedName = "MANAGER"
                         },
                         new
                         {
                             Id = "3",
-                            ConcurrencyStamp = "69de9b69-ac2f-4349-9aff-cade12eee8b6",
+                            ConcurrencyStamp = "1a6783b8-4dac-48b4-baf4-f1aad9bf0b44",
                             Name = "STUDENT",
                             NormalizedName = "STUDENT"
                         },
                         new
                         {
                             Id = "4",
-                            ConcurrencyStamp = "c849cef0-80b2-4548-85b1-7cedd3b9b06e",
+                            ConcurrencyStamp = "972809db-8185-4da9-b45a-106e8aae5b6c",
                             Name = "TEACHER",
                             NormalizedName = "TEACHER"
                         },
                         new
                         {
                             Id = "5",
-                            ConcurrencyStamp = "9e7729f4-374c-416a-8c86-d3eb20a4805a",
+                            ConcurrencyStamp = "387973b8-448b-4def-aff6-b8cff2d77380",
                             Name = "GUARDIAN",
                             NormalizedName = "GUARDIAN"
                         });
@@ -1674,7 +1677,7 @@ namespace CleanArchitecture.Infrastracture.Persistence.Migrations
                     b.HasOne("CleanArchitecture.Core.Entities.Manager", "Manager")
                         .WithMany()
                         .HasForeignKey("ManagerID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("CleanArchitecture.Core.Entities.ApplicationUser", "ApplicationUser")
